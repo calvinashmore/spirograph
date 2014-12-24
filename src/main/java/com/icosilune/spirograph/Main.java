@@ -49,12 +49,12 @@ public class Main {
 
     spirograph.rotationRateA = t -> 2*Math.PI/1;
     spirograph.rotationRateB = t -> 2*Math.PI/2;
-    spirograph.rotationArmB = t -> 1.0;
+    spirograph.rotationArmB = t -> 1.0 + .1*((int)1*t)%2;
     spirograph.rotationArmA = t -> 1.0;
-    spirograph.armA = t -> 5.0;
+    spirograph.armA = t -> 4.5;
     spirograph.armB = t -> 5.0;
 
-    Function<Double, Double> mainRotator = t -> 2*Math.PI*t/3;
+    Function<Double, Double> mainRotator = t -> 2*Math.PI*t/5;
 
     MainPanel mainPanel = new MainPanel(spirograph, mainRotator);
 
@@ -136,14 +136,16 @@ public class Main {
             point.getX() * Math.cos(theta) + point.getY() * Math.sin(theta),
             point.getY() * Math.cos(theta) - point.getX() * Math.sin(theta));
 
-        int ix = (int) (getWidth()/2 * (1 + point.getX()));
-        int iy = (int) (getHeight()/2 * (1 + point.getY()));
+        if(Double.isFinite(point.getX()) && Double.isFinite(point.getY())) {
+          int ix = (int) (getWidth()/2 * (1 + point.getX()));
+          int iy = (int) (getHeight()/2 * (1 + point.getY()));
 
-        if(lastX != 0 && lastY != 0) {
-          g.drawLine(lastX, lastY, ix, iy);
+          if(lastX != 0 && lastY != 0) {
+            g.drawLine(lastX, lastY, ix, iy);
+          }
+          lastX = ix;
+          lastY = iy;
         }
-        lastX = ix;
-        lastY = iy;
       }
     }
   }
