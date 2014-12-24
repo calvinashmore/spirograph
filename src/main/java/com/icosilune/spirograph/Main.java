@@ -10,8 +10,15 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -31,20 +38,42 @@ public class Main {
 //    spirograph.rotationArmB = t -> 1.0 - .5*Math.sin(t*.1);
 //    spirograph.rotationArmA = t -> 1.0;
 
-    spirograph.rotationRateA = t -> 0.4 + .5*Math.sin(t);
-    spirograph.rotationRateB = t -> 1.2;
-    spirograph.rotationArmB = t -> 2.0;
-    spirograph.rotationArmA = t -> 1.0;
-    spirograph.armA = t -> 5.5 + .5*Math.sin(t*.01);
-    spirograph.armB = t -> 3.9;
+//    spirograph.rotationRateA = t -> 0.4 + .5*Math.sin(t);
+//    spirograph.rotationRateB = t -> 1.2;
+//    spirograph.rotationArmB = t -> 2.0;
+//    spirograph.rotationArmA = t -> 1.0;
+//    spirograph.armA = t -> 5.5 + .5*Math.sin(t*.01);
+//    spirograph.armB = t -> 3.9;
 
-    Function<Double, Double> mainRotator = t -> 2*Math.PI*t*.4;// + 1*Math.sin(.001*t) ;
+//    Function<Double, Double> mainRotator = t -> 2*Math.PI*t*.4;// + 1*Math.sin(.001*t) ;
+
+    spirograph.rotationRateA = t -> 2*Math.PI/1;
+    spirograph.rotationRateB = t -> 2*Math.PI/2;
+    spirograph.rotationArmB = t -> 1.0;
+    spirograph.rotationArmA = t -> 1.0;
+    spirograph.armA = t -> 5.0;
+    spirograph.armB = t -> 5.0;
+
+    Function<Double, Double> mainRotator = t -> 2*Math.PI*t/3;
+
+    MainPanel mainPanel = new MainPanel(spirograph, mainRotator);
 
     JFrame frame = new JFrame("meh");
-    frame.add(new MainPanel(spirograph, mainRotator));
+    frame.add(mainPanel);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.pack();
     frame.setVisible(true);
+    frame.addWindowListener(new WindowAdapter() {
+      @Override
+      public void windowClosing(WindowEvent e) {
+        try {
+          ImageIO.write(mainPanel.getImage(), "png", new File("out.png"));
+        } catch (IOException ex) {
+          Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        super.windowClosing(e);
+      }
+    });
   }
 
   private static final class MainPanel extends JPanel {
@@ -53,7 +82,13 @@ public class Main {
     private final AbstractSpirograph spirograph;
     private final Function<Double, Double> mainRotator;
     private double t = 0;
-    private BufferedImage bg = new BufferedImage(INITIAL_RES, INITIAL_RES, BufferedImage.TYPE_INT_RGB);
+    private final BufferedImage bg = new BufferedImage(INITIAL_RES, INITIAL_RES, BufferedImage.TYPE_INT_RGB);
+    int lastX = 0;
+    int lastY = 0;
+
+    public BufferedImage getImage() {
+      return bg;
+    }
 
     public MainPanel(AbstractSpirograph spirograph, Function<Double, Double> mainRotator) {
       this.spirograph = spirograph;
@@ -84,9 +119,6 @@ public class Main {
       Graphics2D g = bg.createGraphics();
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-      int lastX = 0;
-      int lastY = 0;
-
       double scale = .3;
 
       //g.setColor(Color.BLACK);
@@ -107,7 +139,7 @@ public class Main {
         int ix = (int) (getWidth()/2 * (1 + point.getX()));
         int iy = (int) (getHeight()/2 * (1 + point.getY()));
 
-        if(i > 0) {
+        if(lastX != 0 && lastY != 0) {
           g.drawLine(lastX, lastY, ix, iy);
         }
         lastX = ix;
